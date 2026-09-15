@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "554321796922",
+    "project_id": "ghar-ka-khana-cda7a",
+    "storage_bucket": "ghar-ka-khana-cda7a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554321796922:android:d1e8b5d76d50adfdc13a03",
+        "android_client_info": {
+          "package_name": "com.example.ghar_ka_khana"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRsaa7UNqST6P-0K27YYHWxNRN6pnZtZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
