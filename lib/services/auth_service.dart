@@ -25,6 +25,7 @@ class AuthService {
       'email': email.trim(),
       'name': name ?? '',
       'role': role.name,
+      'kitchenName': role == Role.seller ? "${name ?? 'My'} Kitchen" : '',
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -57,7 +58,14 @@ class AuthService {
     if (user == null) return null;
 
     final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (!doc.exists || doc.data()?['role'] == null) return null;
+
+    // If doc isn't ready immediately upon quick registration, retry briefly
+    if (!doc.exists || doc.data()?['role'] == null) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final retryDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (!retryDoc.exists || retryDoc.data()?['role'] == null) return null;
+      return RoleX.fromString(retryDoc.data()!['role'] as String);
+    }
 
     return RoleX.fromString(doc.data()!['role'] as String);
   }
