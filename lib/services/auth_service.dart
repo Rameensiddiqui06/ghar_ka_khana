@@ -1,3 +1,5 @@
+
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/role.dart';
@@ -32,10 +34,7 @@ class AuthService {
   }
 
   /// Signs in an existing user and fetches their role from Firestore.
-  Future<Role> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<Role> login({required String email, required String password}) async {
     final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -49,6 +48,11 @@ class AuthService {
     }
 
     return RoleX.fromString(doc.data()!['role'] as String);
+  }
+
+  /// Sends a password reset email.
+  Future<void> resetPassword({required String email}) async {
+    await _auth.sendPasswordResetEmail(email: email.trim());
   }
 
   /// Used by AuthGate to check the role of an already-logged-in user.

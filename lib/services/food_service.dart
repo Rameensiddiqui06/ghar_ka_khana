@@ -8,17 +8,23 @@ class FoodService {
 
   Future<List<Food>> getFoods() async {
     final snapshot = await _firestore.collection('foods').get();
-    return snapshot.docs.map((doc) => Food.fromMap(doc.id, doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => Food.fromMap(doc.id, doc.data()))
+        .toList();
   }
 
   Future<List<Seller>> getSellers() async {
     final snapshot = await _firestore.collection('sellers').get();
-    return snapshot.docs.map((doc) => Seller.fromMap(doc.id, doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => Seller.fromMap(doc.id, doc.data()))
+        .toList();
   }
 
   Future<List<FoodCategory>> getCategories() async {
     final snapshot = await _firestore.collection('categories').get();
-    return snapshot.docs.map((doc) => FoodCategory.fromMap(doc.id, doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => FoodCategory.fromMap(doc.id, doc.data()))
+        .toList();
   }
 
   Future<Food?> getFoodById(String id) async {
@@ -38,6 +44,8 @@ class FoodService {
         .collection('foods')
         .where('sellerId', isEqualTo: sellerId)
         .get();
-    return snapshot.docs.map((doc) => Food.fromMap(doc.id, doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => Food.fromMap(doc.id, doc.data()))
+        .toList();
   }
 }

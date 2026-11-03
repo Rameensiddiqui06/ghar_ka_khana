@@ -26,7 +26,8 @@ class WelcomeScreen extends StatelessWidget {
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height -
+              minHeight:
+                  MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
                   MediaQuery.of(context).padding.bottom,
             ),
@@ -36,7 +37,6 @@ class WelcomeScreen extends StatelessWidget {
                   // =====================================================
                   // HERO IMAGE
                   // =====================================================
-
                   SizedBox(
                     height: heroHeight,
                     width: double.infinity,
@@ -51,7 +51,11 @@ class WelcomeScreen extends StatelessWidget {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Color.lerp(AppColors.primary, Colors.black, 0.1)!,
+                                Color.lerp(
+                                  AppColors.primary,
+                                  Colors.black,
+                                  0.1,
+                                )!,
                                 AppColors.primary,
                               ],
                             ),
@@ -70,35 +74,36 @@ class WelcomeScreen extends StatelessWidget {
 
                           // Smooth fade-in once the first frame is decoded,
                           // instead of an abrupt pop-in over the placeholder.
-                          frameBuilder: (
-                            BuildContext context,
-                            Widget child,
-                            int? frame,
-                            bool wasSynchronouslyLoaded,
-                          ) {
-                            if (wasSynchronouslyLoaded) return child;
-                            return AnimatedOpacity(
-                              opacity: frame == null ? 0 : 1,
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeOut,
-                              child: child,
-                            );
-                          },
+                          frameBuilder:
+                              (
+                                BuildContext context,
+                                Widget child,
+                                int? frame,
+                                bool wasSynchronouslyLoaded,
+                              ) {
+                                if (wasSynchronouslyLoaded) return child;
+                                return AnimatedOpacity(
+                                  opacity: frame == null ? 0 : 1,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeOut,
+                                  child: child,
+                                );
+                              },
 
                           // Keep placeholder visible if the image fails.
-                          errorBuilder: (
-                            BuildContext context,
-                            Object error,
-                            StackTrace? stackTrace,
-                          ) {
-                            return const SizedBox.shrink();
-                          },
+                          errorBuilder:
+                              (
+                                BuildContext context,
+                                Object error,
+                                StackTrace? stackTrace,
+                              ) {
+                                return const SizedBox.shrink();
+                              },
                         ),
 
                         // =================================================
                         // BOTTOM GRADIENT
                         // =================================================
-
                         Positioned.fill(
                           child: DecoratedBox(
                             decoration: BoxDecoration(
@@ -109,10 +114,7 @@ class WelcomeScreen extends StatelessWidget {
                                   Colors.transparent,
                                   AppColors.background,
                                 ],
-                                stops: const [
-                                  0.45,
-                                  1.0,
-                                ],
+                                stops: const [0.45, 1.0],
                               ),
                             ),
                           ),
@@ -124,21 +126,14 @@ class WelcomeScreen extends StatelessWidget {
                   // =====================================================
                   // CONTENT
                   // =====================================================
-
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      24,
-                      4,
-                      24,
-                      24,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // =============================================
                         // HEADING
                         // =============================================
-
                         const Text(
                           'Homemade food,\n'
                           'made with love.',
@@ -156,7 +151,6 @@ class WelcomeScreen extends StatelessWidget {
                         // =============================================
                         // DESCRIPTION
                         // =============================================
-
                         const Text(
                           'Discover delicious food from home cooks around you. '
                           'Support local women entrepreneurs and eat fresh every day.',
@@ -172,15 +166,13 @@ class WelcomeScreen extends StatelessWidget {
                         // =============================================
                         // GET STARTED
                         // =============================================
-
                         PrimaryButton(
                           text: 'Get Started',
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const RoleSelectScreen(),
+                                builder: (context) => const RoleSelectScreen(),
                               ),
                             );
                           },
@@ -191,15 +183,13 @@ class WelcomeScreen extends StatelessWidget {
                         // =============================================
                         // ALREADY HAVE ACCOUNT
                         // =============================================
-
                         OutlineButton(
                           text: 'I Already Have an Account',
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const LoginScreen(),
+                                builder: (context) => const LoginScreen(),
                               ),
                             );
                           },

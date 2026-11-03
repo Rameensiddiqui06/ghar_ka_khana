@@ -17,9 +17,7 @@ class OutlineButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger
-        ? AppColors.error
-        : AppColors.primary;
+    final color = danger ? AppColors.error : AppColors.primary;
 
     return SizedBox(
       width: full ? double.infinity : null,
@@ -28,20 +26,14 @@ class OutlineButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          side: BorderSide(
-            color: color,
-            width: 2,
-          ),
+          side: BorderSide(color: color, width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
     );

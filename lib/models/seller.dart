@@ -1,3 +1,5 @@
+
+
 class Seller {
   final String id;
   final String name;
@@ -19,6 +21,11 @@ class Seller {
   final String hours;
   final String days;
 
+  // Payment accounts (empty = seller doesn't accept that method).
+  final String easypaisaNumber;
+  final String jazzcashNumber;
+  final String accountTitle;
+
   Seller({
     required this.id,
     required this.name,
@@ -39,6 +46,9 @@ class Seller {
     required this.story,
     required this.hours,
     required this.days,
+    this.easypaisaNumber = '',
+    this.jazzcashNumber = '',
+    this.accountTitle = '',
   });
 
   factory Seller.fromMap(String id, Map<String, dynamic> map) {
@@ -62,6 +72,9 @@ class Seller {
       story: map['story'] ?? '',
       hours: map['hours'] ?? '',
       days: map['days'] ?? '',
+      easypaisaNumber: map['easypaisaNumber'] ?? '',
+      jazzcashNumber: map['jazzcashNumber'] ?? '',
+      accountTitle: map['accountTitle'] ?? '',
     );
   }
 
@@ -85,6 +98,9 @@ class Seller {
       'story': story,
       'hours': hours,
       'days': days,
+      'easypaisaNumber': easypaisaNumber,
+      'jazzcashNumber': jazzcashNumber,
+      'accountTitle': accountTitle,
     };
   }
 }

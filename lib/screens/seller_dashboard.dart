@@ -32,8 +32,14 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
             _buildDashboardTab(),
             _buildPlaceholderTab('Orders Screen', Icons.inventory_2_outlined),
             _buildPlaceholderTab('Today\'s Menu Screen', Icons.restaurant_menu),
-            _buildPlaceholderTab('Earnings Screen', Icons.account_balance_wallet_outlined),
-            _buildPlaceholderTab('Profile & Notifications', Icons.person_outline),
+            _buildPlaceholderTab(
+              'Earnings Screen',
+              Icons.account_balance_wallet_outlined,
+            ),
+            _buildPlaceholderTab(
+              'Profile & Notifications',
+              Icons.person_outline,
+            ),
           ],
         ),
       ),
@@ -165,7 +171,10 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Welcome back", style: TextStyle(color: Colors.grey, fontSize: 14)),
+            const Text(
+              "Welcome back",
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
             Text(
               "Good morning, Ammi's Kitc...",
               style: TextStyle(
@@ -220,15 +229,45 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
       children: [
-        _buildStatCard("12", "Today's Orders", Icons.card_giftcard, Colors.orange, () => setState(() => _selectedIndex = 1)),
-        _buildStatCard("Rs. 8,450", "Today's Sales", Icons.attach_money, Colors.green, () => setState(() => _selectedIndex = 3)),
-        _buildStatCard("4", "Pending", Icons.hourglass_top, Colors.amber, () => setState(() => _selectedIndex = 1)),
-        _buildStatCard("18", "Today's Menu", Icons.restaurant, Colors.purple, () => setState(() => _selectedIndex = 2)),
+        _buildStatCard(
+          "12",
+          "Today's Orders",
+          Icons.card_giftcard,
+          Colors.orange,
+          () => setState(() => _selectedIndex = 1),
+        ),
+        _buildStatCard(
+          "Rs. 8,450",
+          "Today's Sales",
+          Icons.attach_money,
+          Colors.green,
+          () => setState(() => _selectedIndex = 3),
+        ),
+        _buildStatCard(
+          "4",
+          "Pending",
+          Icons.hourglass_top,
+          Colors.amber,
+          () => setState(() => _selectedIndex = 1),
+        ),
+        _buildStatCard(
+          "18",
+          "Today's Menu",
+          Icons.restaurant,
+          Colors.purple,
+          () => setState(() => _selectedIndex = 2),
+        ),
       ],
     );
   }
 
-  Widget _buildStatCard(String val, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildStatCard(
+    String val,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -256,10 +295,15 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: color == Colors.green ? Colors.teal[700] : Colors.brown[900],
+                color: color == Colors.green
+                    ? Colors.teal[700]
+                    : Colors.brown[900],
               ),
             ),
-            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -289,7 +333,10 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               ),
               const Text(
                 "+18%",
-                style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.teal,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -306,7 +353,7 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               _buildBar("S", 90),
               _buildBar("S", 100, isHighlight: true),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -345,17 +392,42 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildActionItem(Icons.add, "Add Food", Colors.purple, () => _showSnackBar('Opening Add Food screen...')),
-            _buildActionItem(Icons.inventory_2_outlined, "Orders", Colors.orange, () => setState(() => _selectedIndex = 1)),
-            _buildActionItem(Icons.circle, "Availability", Colors.green, () => _showSnackBar('Kitchen Status: Open')),
-            _buildActionItem(Icons.bar_chart, "Earnings", Colors.blue, () => setState(() => _selectedIndex = 3)),
+            _buildActionItem(
+              Icons.add,
+              "Add Food",
+              Colors.purple,
+              () => _showSnackBar('Opening Add Food screen...'),
+            ),
+            _buildActionItem(
+              Icons.inventory_2_outlined,
+              "Orders",
+              Colors.orange,
+              () => setState(() => _selectedIndex = 1),
+            ),
+            _buildActionItem(
+              Icons.circle,
+              "Availability",
+              Colors.green,
+              () => _showSnackBar('Kitchen Status: Open'),
+            ),
+            _buildActionItem(
+              Icons.bar_chart,
+              "Earnings",
+              Colors.blue,
+              () => setState(() => _selectedIndex = 3),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildActionItem(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionItem(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -435,7 +507,10 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(12),
@@ -473,12 +548,16 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                 Row(
                   children: [
                     ElevatedButton(
-                      onPressed: () => _showSnackBar('Order $orderId Accepted!'),
+                      onPressed: () =>
+                          _showSnackBar('Order $orderId Accepted!'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE8F5E9),
                         elevation: 0,
                       ),
-                      child: const Text("Accept", style: TextStyle(color: Colors.green)),
+                      child: const Text(
+                        "Accept",
+                        style: TextStyle(color: Colors.green),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
@@ -487,13 +566,17 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                         backgroundColor: const Color(0xFFFFEBEE),
                         elevation: 0,
                       ),
-                      child: const Text("Reject", style: TextStyle(color: Colors.red)),
+                      child: const Text(
+                        "Reject",
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                   ],
                 ),
               if (showMarkReady)
                 ElevatedButton(
-                  onPressed: () => _showSnackBar('Order $orderId marked as Ready!'),
+                  onPressed: () =>
+                      _showSnackBar('Order $orderId marked as Ready!'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFF2E2),
                     elevation: 0,
@@ -510,7 +593,12 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
     );
   }
 
-  Widget _buildPopularItem(String rank, String title, String price, String rating) {
+  Widget _buildPopularItem(
+    String rank,
+    String title,
+    String price,
+    String rating,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
