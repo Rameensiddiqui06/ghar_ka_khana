@@ -1,350 +1,349 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import '../../core/app_colors.dart';
+import '../../models/order.dart';
+import '../../services/order_service.dart';
+import '../../widgets/status_pill.dart';
 
-class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({Key? key}) : super(key: key);
+const _progressStatuses = {
+  'accepted',
+  'preparing',
+  'ready',
+  'out-for-delivery',
+};
 
-  @override
-  State<OrdersScreen> createState() => _OrdersScreenState();
-}
+const _nextStatus = {
+  'pending': 'accepted',
+  'accepted': 'preparing',
+  'preparing': 'ready',
+  'ready': 'out-for-delivery',
+  'out-for-delivery': 'delivered',
+};
 
-class _OrdersScreenState extends State<OrdersScreen> {
-  // Filter state: 'all', 'active', 'completed'
-  String _selectedFilter = 'all';
+const _nextLabel = {
+  'pending': 'Accept order',
+  'accepted': 'Start preparing',
+  'preparing': 'Mark ready',
+  'ready': 'Out for delivery',
+  'out-for-delivery': 'Mark delivered',
+};
+
+class OrdersScreen extends StatelessWidget {
+  const OrdersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'lzkxn1tnC8SiZYDWa6uodfD7CO72';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F6F0),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          "Customer Orders",
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Filter Chips Bar (3 Clean Buttons)
-          Container(
-            color: Colors.white,
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildFilterChip('All', 'all'),
-                _buildFilterChip('Active', 'active'),
-                _buildFilterChip('Delivered', 'completed'),
-              ],
-            ),
-          ),
-
-          // Orders Stream List
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('orders')
-                  .where('kitchenId', isEqualTo: currentUserId)
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 12),
-                        Text(
-                          "No orders received yet.",
-                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                var orderDocs = snapshot.data!.docs;
-
-                // Client-side filtering for 3 tabs
-                if (_selectedFilter != 'all') {
-                  orderDocs = orderDocs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final status = data['status'] ?? 'new';
-
-                    if (_selectedFilter == 'active') {
-                      // Active includes new, preparing, and ready
-                      return status == 'new' || status == 'preparing' || status == 'ready';
-                    } else if (_selectedFilter == 'completed') {
-                      // Delivered / Completed tab
-                      return status == 'completed';
-                    }
-                    return status == _selectedFilter;
-                  }).toList();
-                }
-
-                if (orderDocs.isEmpty) {
-                  return Center(
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
                     child: Text(
-                      "No ${_selectedFilter} orders found.",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: orderDocs.length,
-                  itemBuilder: (context, index) {
-                    final doc = orderDocs[index];
-                    final data = doc.data() as Map<String, dynamic>;
-
-                    final String orderId = doc.id;
-                    final String customerName = data['customerName'] ?? 'Valued Customer';
-                    final String customerPhone = data['customerPhone'] ?? 'N/A';
-                    final double totalAmount = (data['totalAmount'] ?? 0).toDouble();
-                    final String status = data['status'] ?? 'new';
-                    final List items = data['items'] ?? [];
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      'Incoming Orders',
+                      style: TextStyle(
+                        fontFamily: 'serif',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
                       ),
-                      elevation: 1.5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                  ),
+                  TabBar(
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: AppColors.muted,
+                    indicatorColor: AppColors.primary,
+                    dividerColor: AppColors.sand,
+                    tabs: [
+                      Tab(text: 'New'),
+                      Tab(text: 'In progress'),
+                      Tab(text: 'Done'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: uid == null
+                  ? const Center(
+                      child: Text(
+                        'Please log in again',
+                        style: TextStyle(color: AppColors.muted),
+                      ),
+                    )
+                  : StreamBuilder<List<FoodOrder>>(
+                      stream: OrderService().streamSellerOrders(uid),
+                      builder: (context, snap) {
+                        if (snap.hasError) {
+                          debugPrint('Seller orders error: ${snap.error}');
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                'Could not load orders.\n${snap.error}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        if (!snap.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        final all = snap.data!;
+                        final fresh =
+                            all.where((o) => o.status == 'pending').toList();
+                        final progress = all
+                            .where((o) => _progressStatuses.contains(o.status))
+                            .toList();
+                        final done = all
+                            .where(
+                              (o) =>
+                                  o.status == 'delivered' ||
+                                  o.status == 'cancelled',
+                            )
+                            .toList();
+                        return TabBarView(
                           children: [
-                            // Top Row: Order ID & Status Badge
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Order #${orderId.substring(0, orderId.length > 6 ? 6 : orderId.length).toUpperCase()}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                _buildStatusBadge(status),
-                              ],
+                            _SellerOrderList(
+                              orders: fresh,
+                              emptyText: 'No new orders',
                             ),
-                            const Divider(height: 20),
-
-                            // Customer Info
-                            Row(
-                              children: [
-                                const Icon(Icons.person_outline, size: 16, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text(customerName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                                const Spacer(),
-                                const Icon(Icons.phone_outlined, size: 16, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text(customerPhone, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
-                              ],
+                            _SellerOrderList(
+                              orders: progress,
+                              emptyText: 'Nothing in progress',
                             ),
-                            const SizedBox(height: 12),
-
-                            // Items Ordered List Box
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: items.map<Widget>((item) {
-                                  final itemName = item['name'] ?? 'Dish';
-                                  final quantity = item['quantity'] ?? 1;
-                                  final price = item['price'] ?? 0;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text("$quantity x $itemName", style: const TextStyle(fontSize: 13)),
-                                        Text("Rs. ${price * quantity}", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Total Amount & Action Buttons Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text("Total Amount", style: TextStyle(fontSize: 11, color: Colors.grey)),
-                                    Text(
-                                      "Rs. ${totalAmount.toStringAsFixed(0)}",
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFD95325),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                // Status Action Handler
-                                _buildActionButtons(doc.reference, status),
-                              ],
+                            _SellerOrderList(
+                              orders: done,
+                              emptyText: 'No completed orders yet',
                             ),
                           ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+                        );
+                      },
+                    ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildFilterChip(String label, String value) {
-    bool isSelected = _selectedFilter == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: const Color(0xFFD95325).withOpacity(0.15),
-      backgroundColor: Colors.grey[100],
-      labelStyle: TextStyle(
-        color: isSelected ? const Color(0xFFD95325) : Colors.black87,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontSize: 13,
-      ),
-      onSelected: (bool selected) {
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-    );
-  }
+class _SellerOrderList extends StatelessWidget {
+  final List<FoodOrder> orders;
+  final String emptyText;
+  const _SellerOrderList({required this.orders, required this.emptyText});
 
-  Widget _buildStatusBadge(String status) {
-    Color bgColor;
-    Color textColor;
-    String label = status.toUpperCase();
-
-    switch (status) {
-      case 'new':
-        bgColor = Colors.blue[100]!;
-        textColor = Colors.blue[900]!;
-        label = 'NEW';
-        break;
-      case 'preparing':
-        bgColor = Colors.orange[100]!;
-        textColor = Colors.orange[900]!;
-        label = 'PREPARING';
-        break;
-      case 'ready':
-        bgColor = Colors.purple[100]!;
-        textColor = Colors.purple[900]!;
-        label = 'READY';
-        break;
-      case 'completed':
-        bgColor = Colors.green[100]!;
-        textColor = Colors.green[900]!;
-        label = 'COMPLETED';
-        break;
-      default:
-        bgColor = Colors.grey[200]!;
-        textColor = Colors.grey[800]!;
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) {
+      return Center(
+        child: Text(
+          emptyText,
+          style: const TextStyle(color: AppColors.muted, fontSize: 15),
+        ),
+      );
     }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (_, i) => _SellerOrderCard(order: orders[i]),
+    );
+  }
+}
+
+class _SellerOrderCard extends StatefulWidget {
+  final FoodOrder order;
+  const _SellerOrderCard({required this.order});
+
+  @override
+  State<_SellerOrderCard> createState() => _SellerOrderCardState();
+}
+
+class _SellerOrderCardState extends State<_SellerOrderCard> {
+  final _service = OrderService();
+  bool _busy = false;
+
+  Future<void> _run(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await action();
+    } catch (e) {
+      debugPrint('Seller order action failed: $e');
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not update the order. Try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Widget _line(String l, String v) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 78,
+          child: Text(
+            l,
+            style: const TextStyle(fontSize: 12.5, color: AppColors.muted),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            v,
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final o = widget.order;
+    final next = _nextStatus[o.status];
+    final canCancel = o.status == 'pending' || o.status == 'accepted';
+    final needsVerify = o.paymentStatus == 'awaiting-verification';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(DocumentReference docRef, String status) {
-    if (status == 'new') {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-            onPressed: () async {
-              await docRef.update({'status': 'cancelled'});
-            },
-            child: const Text("Reject", style: TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(width: 6),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD95325),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-            onPressed: () async {
-              await docRef.update({'status': 'preparing'});
-            },
-            child: const Text("Accept", style: TextStyle(fontSize: 12, color: Colors.white)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
-      );
-    } else if (status == 'preparing') {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.purple,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () async {
-          await docRef.update({'status': 'ready'});
-        },
-        child: const Text("Mark Ready", style: TextStyle(fontSize: 12, color: Colors.white)),
-      );
-    } else if (status == 'ready') {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () async {
-          await docRef.update({'status': 'completed'});
-        },
-        child: const Text("Complete", style: TextStyle(fontSize: 12, color: Colors.white)),
-      );
-    } else {
-      return const Text("Done", style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic));
-    }
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '#${o.id}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                ),
+              ),
+              StatusPill(status: o.status),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final i in o.items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${i.name} × ${i.qty}',
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  Text(
+                    'Rs. ${i.price * i.qty}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.text2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const Divider(height: 20, color: AppColors.sand),
+          _line('Address', o.address),
+          if (o.phone.isNotEmpty) _line('Phone', o.phone),
+          if (o.notes.isNotEmpty) _line('Notes', o.notes),
+          _line('Payment', '${o.payment} · ${o.paymentStatusLabel}'),
+          if (o.transactionId.isNotEmpty) _line('TID', o.transactionId),
+          const SizedBox(height: 8),
+          Text(
+            'Total Rs. ${o.total}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+            ),
+          ),
+          if (needsVerify && o.status != 'cancelled') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _busy ? null : () => _run(() => _service.markPaid(o.id)),
+                child: const Text('Payment received (TID verified)'),
+              ),
+            ),
+          ],
+          if (next != null || canCancel) const SizedBox(height: 12),
+          Row(
+            children: [
+              if (canCancel)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _busy
+                        ? null
+                        : () => _run(
+                            () => _service.updateStatus(o.id, 'cancelled'),
+                          ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                    child: const Text('Decline'),
+                  ),
+                ),
+              if (canCancel && next != null) const SizedBox(width: 10),
+              if (next != null)
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _busy
+                        ? null
+                        : () => _run(() async {
+                            await _service.updateStatus(o.id, next);
+                            if (next == 'delivered' &&
+                                o.paymentMethod == 'cod') {
+                              await _service.markPaid(o.id);
+                            }
+                          }),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(_nextLabel[o.status] ?? 'Next'),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

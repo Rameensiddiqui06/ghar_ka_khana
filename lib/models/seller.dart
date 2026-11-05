@@ -1,5 +1,3 @@
-
-
 class Seller {
   final String id;
   final String name;
@@ -103,4 +101,30 @@ class Seller {
       'accountTitle': accountTitle,
     };
   }
+
+  /// Same seller with rating/review count taken from real reviews.
+  Seller withRating(double rating, int reviews) => Seller(
+        id: id,
+        name: name,
+        avatarUrl: avatarUrl,
+        coverUrl: coverUrl,
+        avatarEmoji: avatarEmoji,
+        avatarBgHex: avatarBgHex,
+        coverEmoji: coverEmoji,
+        coverBgHex: coverBgHex,
+        rating: rating,
+        reviews: reviews,
+        location: location,
+        distance: distance,
+        cuisines: cuisines,
+        verified: verified,
+        topRated: topRated,
+        description: description,
+        story: story,
+        hours: hours,
+        days: days,
+        easypaisaNumber: easypaisaNumber,
+        jazzcashNumber: jazzcashNumber,
+        accountTitle: accountTitle,
+      );
 }

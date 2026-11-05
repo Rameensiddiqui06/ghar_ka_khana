@@ -6,6 +6,30 @@ import 'seller/manage_menu_screen.dart';
 import 'seller/orders_screen.dart';
 import 'seller/earnings_screen.dart';
 
+const _activeStatuses = {
+  'pending',
+  'accepted',
+  'preparing',
+  'ready',
+  'out-for-delivery',
+};
+
+const _nextStatus = {
+  'pending': 'accepted',
+  'accepted': 'preparing',
+  'preparing': 'ready',
+  'ready': 'out-for-delivery',
+  'out-for-delivery': 'delivered',
+};
+
+const _nextLabel = {
+  'pending': 'Accept',
+  'accepted': 'Start Preparing',
+  'preparing': 'Mark Ready',
+  'ready': 'Out for Delivery',
+  'out-for-delivery': 'Delivered',
+};
+
 class SellerDashboardScreen extends StatefulWidget {
   const SellerDashboardScreen({super.key});
 
@@ -27,23 +51,38 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
     );
   }
 
-  Future<void> _toggleKitchenStatus(bool currentStatus, String currentUserId) async {
+  Future<void> _setStatus(DocumentReference ref, String status) async {
+    try {
+      await ref.update({'status': status});
+    } catch (e) {
+      debugPrint('Status update failed: $e');
+      _showSnackBar('Could not update the order. Try again.');
+    }
+  }
+
+  Future<void> _toggleKitchenStatus(
+    bool currentStatus,
+    String currentUserId,
+  ) async {
     try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
           .update({'isOpen': !currentStatus});
-
-      _showSnackBar(!currentStatus ? "Kitchen is now Open!" : "Kitchen is now Closed.");
+      _showSnackBar(
+        !currentStatus ? "Kitchen is now Open!" : "Kitchen is now Closed.",
+      );
     } catch (e) {
       try {
         await FirebaseFirestore.instance
             .collection('kitchens')
             .doc(currentUserId)
             .update({'isOpen': !currentStatus});
-        _showSnackBar(!currentStatus ? "Kitchen is now Open!" : "Kitchen is now Closed.");
+        _showSnackBar(
+          !currentStatus ? "Kitchen is now Open!" : "Kitchen is now Closed.",
+        );
       } catch (err) {
-        _showSnackBar("Status updated locally.");
+        _showSnackBar("Could not update kitchen status.");
       }
     }
   }
@@ -66,11 +105,7 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: const Color(0xFFC05638),
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
@@ -110,55 +145,69 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('orders')
-          .where('kitchenId', isEqualTo: currentUserId)
+          .where('sellerId', isEqualTo: currentUserId)
           .snapshots(),
       builder: (context, orderSnapshot) {
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('menu_items')
-              .where('kitchenId', isEqualTo: currentUserId)
+              .collection('kitchens')
+              .doc(currentUserId)
+              .collection('menu')
               .snapshots(),
           builder: (context, menuSnapshot) {
             if (orderSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
+            if (orderSnapshot.hasError) {
+              debugPrint('Dashboard orders error: ${orderSnapshot.error}');
+            }
+
             int todaysOrdersCount = 0;
             double todaysSales = 0;
             int pendingCount = 0;
-            List<QueryDocumentSnapshot> activeOrders = [];
+            final List<QueryDocumentSnapshot> activeOrders = [];
 
             if (orderSnapshot.hasData) {
               final now = DateTime.now();
-              for (var doc in orderSnapshot.data!.docs) {
+              for (final doc in orderSnapshot.data!.docs) {
                 final data = doc.data() as Map<String, dynamic>;
-                final status = data['status'] ?? 'new';
-                final double amount = (data['totalAmount'] ?? 0).toDouble();
+                final status = (data['status'] ?? 'pending').toString();
+                final double amount =
+                    ((data['total'] ?? 0) as num).toDouble();
 
-                if (status == 'new' || status == 'preparing' || status == 'ready') {
+                if (_activeStatuses.contains(status)) {
                   pendingCount++;
                   activeOrders.add(doc);
                 }
 
-                DateTime? orderDate;
-                var rawTimestamp = data['createdAt'];
-                if (rawTimestamp is Timestamp) {
-                  orderDate = rawTimestamp.toDate();
-                }
+                final raw = data['createdAt'];
+                final DateTime? orderDate =
+                    raw is Timestamp ? raw.toDate() : null;
 
                 if (orderDate != null &&
                     orderDate.year == now.year &&
                     orderDate.month == now.month &&
                     orderDate.day == now.day) {
                   todaysOrdersCount++;
-                  if (status == 'completed') {
+                  if (status == 'delivered') {
                     todaysSales += amount;
                   }
                 }
               }
+
+              // Newest first
+              activeOrders.sort((a, b) {
+                final ta = (a.data() as Map<String, dynamic>)['createdAt'];
+                final tb = (b.data() as Map<String, dynamic>)['createdAt'];
+                final da = ta is Timestamp ? ta.toDate() : DateTime(2000);
+                final db = tb is Timestamp ? tb.toDate() : DateTime(2000);
+                return db.compareTo(da);
+              });
             }
 
-            int menuCount = menuSnapshot.hasData ? menuSnapshot.data!.docs.length : 0;
+            final int menuCount =
+                menuSnapshot.hasData ? menuSnapshot.data!.docs.length : 0;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 30.0),
@@ -167,6 +216,21 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                 children: [
                   _buildHeader(currentUserId),
                   const SizedBox(height: 20),
+                  if (orderSnapshot.hasError) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Could not load orders: ${orderSnapshot.error}',
+                        style: TextStyle(color: Colors.red[800], fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _buildOverviewGrid(
                     todaysOrders: todaysOrdersCount.toString(),
                     todaysSales: "Rs. ${todaysSales.toStringAsFixed(0)}",
@@ -180,45 +244,52 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                   const SizedBox(height: 24),
                   _buildActiveOrdersHeader(),
                   const SizedBox(height: 12),
-
                   activeOrders.isEmpty
                       ? Container(
-                    padding: const EdgeInsets.all(24),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text("No active orders right now.", style: TextStyle(color: Colors.grey)),
-                  )
+                          padding: const EdgeInsets.all(24),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            "No active orders right now.",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
                       : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: activeOrders.length,
-                    itemBuilder: (context, index) {
-                      final doc = activeOrders[index];
-                      final data = doc.data() as Map<String, dynamic>;
-                      final String orderId = doc.id;
-                      final String customerName = data['customerName'] ?? 'Customer';
-                      final double amount = (data['totalAmount'] ?? 0).toDouble();
-                      final String status = data['status'] ?? 'new';
-                      final List items = data['items'] ?? [];
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: activeOrders.length,
+                          itemBuilder: (context, index) {
+                            final doc = activeOrders[index];
+                            final data = doc.data() as Map<String, dynamic>;
+                            final String orderId = doc.id;
+                            final String customerName =
+                                (data['phone'] ?? 'Customer').toString();
+                            final double amount =
+                                ((data['total'] ?? 0) as num).toDouble();
+                            final String status =
+                                (data['status'] ?? 'pending').toString();
+                            final List items = data['items'] ?? [];
 
-                      String itemsSummary = items.map((i) => "${i['name']} ×${i['quantity']}").join(', ');
+                            final String itemsSummary = items
+                                .map((i) => "${i['name']} ×${i['qty']}")
+                                .join(', ');
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildLiveOrderCard(
-                          docRef: doc.reference,
-                          orderId: '#${orderId.substring(0, orderId.length > 6 ? 6 : orderId.length).toUpperCase()}',
-                          customerName: customerName,
-                          items: itemsSummary,
-                          price: 'Rs. ${amount.toStringAsFixed(0)}',
-                          status: status,
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildLiveOrderCard(
+                                docRef: doc.reference,
+                                orderId: '#$orderId',
+                                customerName: customerName,
+                                items: itemsSummary,
+                                price: 'Rs. ${amount.toStringAsFixed(0)}',
+                                status: status,
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ],
               ),
             );
@@ -240,7 +311,10 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
     }
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(currentUserId).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .snapshots(),
       builder: (context, snapshot) {
         bool isOpen = true;
         String kitchenName = "My Kitchen";
@@ -249,59 +323,83 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
           final data = snapshot.data!.data() as Map<String, dynamic>?;
           isOpen = data?['isOpen'] ?? true;
 
-          if (data?['kitchenName'] != null && (data!['kitchenName'] as String).isNotEmpty) {
-            kitchenName = data['kitchenName'];
-          } else if (data?['name'] != null && (data!['name'] as String).isNotEmpty) {
-            kitchenName = "${data!['name']}'s Kitchen";
+          final kn = data?['kitchenName'];
+          final nm = data?['name'];
+          if (kn is String && kn.isNotEmpty) {
+            kitchenName = kn;
+          } else if (nm is String && nm.isNotEmpty) {
+            kitchenName = "$nm's Kitchen";
           }
         }
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Welcome back", style: TextStyle(color: Colors.grey, fontSize: 14)),
-                Text(
-                  "$greeting, $kitchenName",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown[900],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Welcome back",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                ),
-                const SizedBox(height: 6),
-
-                GestureDetector(
-                  onTap: () => _toggleKitchenStatus(isOpen, currentUserId),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isOpen ? const Color(0xFFE8F5E9) : Colors.red[50],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isOpen ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
+                  Text(
+                    "$greeting, $kitchenName",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown[900],
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(radius: 4, backgroundColor: isOpen ? Colors.green : Colors.red),
-                        const SizedBox(width: 6),
-                        Text(
-                          isOpen ? "Verified Seller • Open Now" : "Kitchen Closed (Tap to Open)",
-                          style: TextStyle(
-                            color: isOpen ? Colors.green[800] : Colors.red[800],
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  ),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () => _toggleKitchenStatus(isOpen, currentUserId),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isOpen ? const Color(0xFFE8F5E9) : Colors.red[50],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isOpen
+                              ? Colors.green.withValues(alpha: 0.3)
+                              : Colors.red.withValues(alpha: 0.3),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.swap_horiz, size: 14, color: isOpen ? Colors.green[800] : Colors.red[800]),
-                      ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleAvatar(
+                            radius: 4,
+                            backgroundColor: isOpen ? Colors.green : Colors.red,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isOpen
+                                ? "Verified Seller • Open Now"
+                                : "Kitchen Closed (Tap to Open)",
+                            style: TextStyle(
+                              color:
+                                  isOpen ? Colors.green[800] : Colors.red[800],
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.swap_horiz,
+                            size: 14,
+                            color: isOpen ? Colors.green[800] : Colors.red[800],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             GestureDetector(
               onTap: () => setState(() => _selectedIndex = 4),
@@ -331,10 +429,14 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
       children: [
-        _buildStatCard(todaysOrders, "Today's Orders", Icons.card_giftcard, Colors.orange, () => setState(() => _selectedIndex = 1)),
-        _buildStatCard(todaysSales, "Today's Sales", Icons.attach_money, Colors.green, () => setState(() => _selectedIndex = 3)),
-        _buildStatCard(pending, "Pending", Icons.hourglass_top, Colors.amber, () => setState(() => _selectedIndex = 1)),
-        _buildStatCard(menuItemsCount, "Total Menu", Icons.restaurant, Colors.purple, () => setState(() => _selectedIndex = 2)),
+        _buildStatCard(todaysOrders, "Today's Orders", Icons.card_giftcard,
+            Colors.orange, () => setState(() => _selectedIndex = 1)),
+        _buildStatCard(todaysSales, "Today's Sales", Icons.attach_money,
+            Colors.green, () => setState(() => _selectedIndex = 3)),
+        _buildStatCard(pending, "Pending", Icons.hourglass_top, Colors.amber,
+            () => setState(() => _selectedIndex = 1)),
+        _buildStatCard(menuItemsCount, "Total Menu", Icons.restaurant,
+            Colors.purple, () => setState(() => _selectedIndex = 2)),
       ],
     );
   }
@@ -373,9 +475,8 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: color == Colors.green
-                    ? Colors.teal[700]
-                    : Colors.brown[900],
+                color:
+                    color == Colors.green ? Colors.teal[700] : Colors.brown[900],
               ),
             ),
             Text(
@@ -389,8 +490,8 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
   }
 
   Widget _buildRevenueChartCard() {
-    int currentDayIndex = DateTime.now().weekday - 1;
-    List<String> days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final int currentDayIndex = DateTime.now().weekday - 1;
+    const List<String> days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -414,7 +515,8 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               ),
               const Text(
                 "Live",
-                style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -423,10 +525,9 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: List.generate(7, (index) {
-              bool isToday = (index == currentDayIndex);
+              final bool isToday = (index == currentDayIndex);
               double height = 50.0 + (index * 7);
               if (isToday) height = 95;
-
               return _buildBar(days[index], height, isHighlight: isToday);
             }),
           ),
@@ -447,7 +548,14 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(day, style: TextStyle(color: isHighlight ? const Color(0xFFC05638) : Colors.grey, fontSize: 12, fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal)),
+        Text(
+          day,
+          style: TextStyle(
+            color: isHighlight ? const Color(0xFFC05638) : Colors.grey,
+            fontSize: 12,
+            fontWeight: isHighlight ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
       ],
     );
   }
@@ -468,10 +576,14 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildActionItem(Icons.add, "Add Food", Colors.purple, () => setState(() => _selectedIndex = 2)),
-            _buildActionItem(Icons.inventory_2_outlined, "Orders", Colors.orange, () => setState(() => _selectedIndex = 1)),
-            _buildActionItem(Icons.circle, "Availability", Colors.green, () => _showSnackBar('Kitchen Status: Open')),
-            _buildActionItem(Icons.bar_chart, "Earnings", Colors.blue, () => setState(() => _selectedIndex = 3)),
+            _buildActionItem(Icons.add, "Add Food", Colors.purple,
+                () => setState(() => _selectedIndex = 2)),
+            _buildActionItem(Icons.inventory_2_outlined, "Orders",
+                Colors.orange, () => setState(() => _selectedIndex = 1)),
+            _buildActionItem(Icons.circle, "Availability", Colors.green,
+                () => _showSnackBar('Tap the status badge above to open or close your kitchen')),
+            _buildActionItem(Icons.bar_chart, "Earnings", Colors.blue,
+                () => setState(() => _selectedIndex = 3)),
           ],
         ),
       ],
@@ -496,7 +608,11 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
               ],
             ),
             child: Icon(icon, color: color, size: 24),
@@ -507,7 +623,11 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
             child: Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.black87),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -554,10 +674,11 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
     Color statusTextColor;
 
     switch (status) {
-      case 'new':
+      case 'pending':
         statusColor = Colors.blue[100]!;
         statusTextColor = Colors.blue[900]!;
         break;
+      case 'accepted':
       case 'preparing':
         statusColor = Colors.orange[100]!;
         statusTextColor = Colors.orange[900]!;
@@ -567,13 +688,19 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
         statusTextColor = Colors.purple[900]!;
     }
 
+    final next = _nextStatus[status];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 3)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
@@ -591,10 +718,8 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(12),
@@ -611,9 +736,15 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(customerName, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(
+            customerName,
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 8),
-          Text(items, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(
+            items,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -626,52 +757,43 @@ class _SellerDashboardScreenState extends State<SellerDashboardScreen> {
                   color: Color(0xFFC05638),
                 ),
               ),
-              if (status == 'new')
-                Row(
-                  children: [
+              Row(
+                children: [
+                  if (status == 'pending') ...[
                     OutlinedButton(
-                      onPressed: () async => await docRef.update({'status': 'cancelled'}),
+                      onPressed: () => _setStatus(docRef, 'cancelled'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         minimumSize: const Size(60, 32),
                       ),
-                      child: const Text("Reject", style: TextStyle(fontSize: 11)),
+                      child: const Text(
+                        "Reject",
+                        style: TextStyle(fontSize: 11),
+                      ),
                     ),
                     const SizedBox(width: 8),
+                  ],
+                  if (next != null)
                     ElevatedButton(
-                      onPressed: () async => await docRef.update({'status': 'preparing'}),
+                      onPressed: () => _setStatus(docRef, next),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFD95325),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         minimumSize: const Size(60, 32),
                       ),
-                      child: const Text("Accept", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      child: Text(
+                        _nextLabel[status] ?? 'Next',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
+                      ),
                     ),
-                  ],
-                )
-              else if (status == 'preparing')
-                ElevatedButton(
-                  onPressed: () async => await docRef.update({'status': 'ready'}),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    elevation: 0,
-                    minimumSize: const Size(80, 32),
-                  ),
-                  child: const Text("Mark Ready", style: TextStyle(color: Colors.white, fontSize: 11)),
-                )
-              else if (status == 'ready')
-                ElevatedButton(
-                  onPressed: () async => await docRef.update({'status': 'completed'}),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    elevation: 0,
-                    minimumSize: const Size(80, 32),
-                  ),
-                  child: const Text("Complete", style: TextStyle(color: Colors.white, fontSize: 11)),
-                ),
+                ],
+              ),
             ],
           ),
         ],

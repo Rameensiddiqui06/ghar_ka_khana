@@ -87,4 +87,27 @@ class Food {
       'freshToday': freshToday,
     };
   }
+
+  /// Same dish with rating/review count taken from real reviews.
+  Food withRating(double rating, int reviews) => Food(
+        id: id,
+        name: name,
+        sellerId: sellerId,
+        sellerName: sellerName,
+        category: category,
+        price: price,
+        rating: rating,
+        reviews: reviews,
+        imageUrl: imageUrl,
+        emoji: emoji,
+        bgColorHex: bgColorHex,
+        description: description,
+        ingredients: ingredients,
+        portionSize: portionSize,
+        prepTime: prepTime,
+        available: available,
+        verified: verified,
+        featured: featured,
+        freshToday: freshToday,
+      );
 }
