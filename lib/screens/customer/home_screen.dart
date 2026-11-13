@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/color_utils.dart';
@@ -11,6 +13,7 @@ import '../../widgets/food_card_v.dart';
 import '../../widgets/food_card_h.dart';
 import '../../widgets/star_row.dart';
 import '../../core/unsplash.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final void Function(String screen, {Map<String, dynamic>? params}) onNav;
@@ -93,14 +96,44 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Row(children: [
-                            Text('📍 ', style: TextStyle(fontSize: 12)),
-                            Text('Deliver to ', style: TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w500)),
-                            Text('DHA Phase 6 ▾', style: TextStyle(fontSize: 12, color: AppColors.text, fontWeight: FontWeight.w600)),
-                          ]),
-                          SizedBox(height: 2),
-                          Text('Good afternoon 👋', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.text)),
+                        children: [
+                          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: FirebaseAuth.instance.currentUser == null
+                                ? null
+                                : FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(FirebaseAuth.instance.currentUser!.uid)
+                                .snapshots(),
+                            builder: (context, snap) {
+                              final raw = snap.data?.data()?['address'];
+                              final address = (raw is String) ? raw.trim() : '';
+                              return Row(children: [
+                                const Text('📍 ', style: TextStyle(fontSize: 12)),
+                                const Text('Deliver to ',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.muted,
+                                        fontWeight: FontWeight.w500)),
+                                Flexible(
+                                  child: Text(
+                                    address.isEmpty ? 'Add your address' : address,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.text,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ]);
+                            },
+                          ),
+                          const SizedBox(height: 2),
+                          const Text('Good afternoon 👋',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.text)),
                         ],
                       ),
                     ),
