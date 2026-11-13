@@ -19,6 +19,11 @@ class Seller {
   final String hours;
   final String days;
 
+  // Payment accounts (empty = seller doesn't accept that method).
+  final String easypaisaNumber;
+  final String jazzcashNumber;
+  final String accountTitle;
+
   Seller({
     required this.id,
     required this.name,
@@ -39,6 +44,9 @@ class Seller {
     required this.story,
     required this.hours,
     required this.days,
+    this.easypaisaNumber = '',
+    this.jazzcashNumber = '',
+    this.accountTitle = '',
   });
 
   factory Seller.fromMap(String id, Map<String, dynamic> map) {
@@ -62,6 +70,9 @@ class Seller {
       story: map['story'] ?? '',
       hours: map['hours'] ?? '',
       days: map['days'] ?? '',
+      easypaisaNumber: map['easypaisaNumber'] ?? '',
+      jazzcashNumber: map['jazzcashNumber'] ?? '',
+      accountTitle: map['accountTitle'] ?? '',
     );
   }
 
@@ -85,6 +96,35 @@ class Seller {
       'story': story,
       'hours': hours,
       'days': days,
+      'easypaisaNumber': easypaisaNumber,
+      'jazzcashNumber': jazzcashNumber,
+      'accountTitle': accountTitle,
     };
   }
+
+  /// Same seller with rating/review count taken from real reviews.
+  Seller withRating(double rating, int reviews) => Seller(
+        id: id,
+        name: name,
+        avatarUrl: avatarUrl,
+        coverUrl: coverUrl,
+        avatarEmoji: avatarEmoji,
+        avatarBgHex: avatarBgHex,
+        coverEmoji: coverEmoji,
+        coverBgHex: coverBgHex,
+        rating: rating,
+        reviews: reviews,
+        location: location,
+        distance: distance,
+        cuisines: cuisines,
+        verified: verified,
+        topRated: topRated,
+        description: description,
+        story: story,
+        hours: hours,
+        days: days,
+        easypaisaNumber: easypaisaNumber,
+        jazzcashNumber: jazzcashNumber,
+        accountTitle: accountTitle,
+      );
 }

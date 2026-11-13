@@ -8,7 +8,14 @@ class EmptyState extends StatelessWidget {
   final String? cta;
   final VoidCallback? onCta;
 
-  const EmptyState({super.key, required this.emoji, required this.title, this.subtitle, this.cta, this.onCta});
+  const EmptyState({
+    super.key,
+    required this.emoji,
+    required this.title,
+    this.subtitle,
+    this.cta,
+    this.onCta,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +27,26 @@ class EmptyState extends StatelessWidget {
           children: [
             Text(emoji, style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 16),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
+            ),
             if (subtitle != null) ...[
               const SizedBox(height: 8),
-              Text(subtitle!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.muted, height: 1.4)),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.muted,
+                  height: 1.4,
+                ),
+              ),
             ],
             if (cta != null && onCta != null) ...[
               const SizedBox(height: 24),
@@ -32,10 +55,18 @@ class EmptyState extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: Text(cta!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                child: Text(
+                  cta!,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ],

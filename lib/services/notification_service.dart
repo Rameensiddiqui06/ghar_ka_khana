@@ -10,7 +10,6 @@ import 'package:firebase_core/firebase_core.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  // Optional: handle the message here (e.g. log it)
 }
 
 class NotificationService {
@@ -89,11 +88,6 @@ class NotificationService {
     });
   }
 
-  //   FirebaseAuth.instance.authStateChanges().listen((user) async {
-  //     if (user != null) _saveToken(await _fcm.getToken());
-  //   });
-  // }
-
   Future<void> _showForeground(RemoteMessage m) async {
     final n = m.notification;
     if (n == null) return;
@@ -116,7 +110,7 @@ class NotificationService {
   /// Public: saves this device's token for the current user.
   /// Safe to call on web or if anything fails; it never throws.
   Future<void> saveToken() async {
-    if (kIsWeb) return;
+    if (!isSupported) return;
     try {
       await _saveToken(await _fcm.getToken());
     } catch (_) {}
@@ -129,13 +123,6 @@ class NotificationService {
       'fcmTokens': FieldValue.arrayUnion([token]),
     }, SetOptions(merge: true));
   }
-  // Future<void> _saveToken(String? token) async {
-  //   final uid = FirebaseAuth.instance.currentUser?.uid;
-  //   if (uid == null || token == null) return;
-  //   await FirebaseFirestore.instance.collection('users').doc(uid).set({
-  //     'fcmTokens': FieldValue.arrayUnion([token]),
-  //   }, SetOptions(merge: true));
-  // }
 
   Future<void> removeToken() async {
     if (!isSupported) return;

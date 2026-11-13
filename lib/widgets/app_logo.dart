@@ -44,11 +44,7 @@ class AppLogo extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               'From Their Kitchen to Your Table.',
-              style: TextStyle(
-                color: subColor,
-                fontSize: 10,
-                height: 1.0,
-              ),
+              style: TextStyle(color: subColor, fontSize: 10, height: 1.0),
             ),
           ],
         ),

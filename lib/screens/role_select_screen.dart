@@ -1,176 +1,11 @@
-// import 'package:flutter/material.dart';
 
-// import '../core/app_colors.dart';
-// import '../widgets/app_logo.dart';
-// import 'register_screen.dart';
-
-// /// Temporary home for the Role enum.
-// /// TODO: move this to lib/core/role.dart once you wire up Firebase (Step 6),
-// /// and import it from there instead of defining it here.
-// enum Role { customer, seller, admin }
-
-// class RoleSelectScreen extends StatelessWidget {
-//   const RoleSelectScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: AppColors.background,
-//       body: SafeArea(
-//         child: SingleChildScrollView(
-//           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               AppLogo(),
-
-//               const SizedBox(height: 24),
-
-//               Text(
-//                 'How would you like to join?',
-//                 style: TextStyle(
-//                   color: AppColors.text,
-//                   fontSize: 24,
-//                   fontWeight: FontWeight.w700,
-//                   letterSpacing: -0.4,
-//                 ),
-//               ),
-
-//               const SizedBox(height: 6),
-
-//               Text(
-//                 'Choose your role to continue.',
-//                 style: TextStyle(
-//                   color: AppColors.text2,
-//                   fontSize: 14,
-//                 ),
-//               ),
-
-//               const SizedBox(height: 28),
-
-//               _RoleCard(
-//                 role: Role.customer,
-//                 icon: '🛒',
-//                 title: 'I want to order food',
-//                 subtitle:
-//                     'Discover and order delicious homemade food near you.',
-//                 borderColor: AppColors.primary,
-//                 onTap: () => _goToRegister(context, Role.customer),
-//               ),
-
-//               const SizedBox(height: 16),
-
-//               _RoleCard(
-//                 role: Role.seller,
-//                 icon: '👩‍🍳',
-//                 title: 'I want to sell homemade food',
-//                 subtitle:
-//                     'Turn your passion into a business and earn from home.',
-//                 borderColor: const Color(0xFF4A7C59),
-//                 onTap: () => _goToRegister(context, Role.seller),
-//               ),
-
-//               const SizedBox(height: 16),
-
-//               _RoleCard(
-//                 role: Role.admin,
-//                 icon: '🛡️',
-//                 title: 'Administrator',
-//                 subtitle:
-//                     'Manage the platform, sellers, products and orders.',
-//                 borderColor: const Color(0xFFD9B98A),
-//                 onTap: () => _goToRegister(context, Role.admin),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   void _goToRegister(BuildContext context, Role role) {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => RegisterScreen(role: role),
-//       ),
-//     );
-//   }
-// }
-
-// class _RoleCard extends StatelessWidget {
-//   final Role role;
-//   final String icon;
-//   final String title;
-//   final String subtitle;
-//   final Color borderColor;
-//   final VoidCallback onTap;
-
-//   const _RoleCard({
-//     required this.role,
-//     required this.icon,
-//     required this.title,
-//     required this.subtitle,
-//     required this.borderColor,
-//     required this.onTap,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Material(
-//       color: Colors.white,
-//       borderRadius: BorderRadius.circular(20),
-//       child: InkWell(
-//         borderRadius: BorderRadius.circular(20),
-//         onTap: onTap,
-//         child: Container(
-//           width: double.infinity,
-//           padding: const EdgeInsets.all(20),
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(20),
-//             border: Border.all(color: borderColor, width: 2),
-//           ),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Text(icon, style: const TextStyle(fontSize: 30)),
-//               const SizedBox(height: 12),
-//               Text(
-//                 title,
-//                 style: TextStyle(
-//                   color: AppColors.text,
-//                   fontSize: 15,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//               const SizedBox(height: 4),
-//               Text(
-//                 subtitle,
-//                 style: TextStyle(
-//                   color: AppColors.text2,
-//                   fontSize: 13,
-//                   height: 1.4,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 // import 'package:flutter/material.dart';
 
 // import '../core/app_colors.dart';
+// import '../models/role.dart';
 // import '../widgets/primary_button.dart';
 // import 'register_screen.dart';
-
-// enum Role {
-//   customer,
-//   seller,
-//   admin,
-// }
 
 // class RoleSelectScreen extends StatefulWidget {
 //   const RoleSelectScreen({super.key});
@@ -210,7 +45,6 @@
 //               // ==========================================
 //               // TITLE
 //               // ==========================================
-
 //               const Text(
 //                 'How will you use\nGhar Ka Khana?',
 //                 style: TextStyle(
@@ -238,13 +72,11 @@
 //               // ==========================================
 //               // CUSTOMER
 //               // ==========================================
-
 //               _RoleCard(
 //                 role: Role.customer,
 //                 emoji: '🍽️',
 //                 title: 'I want to order food',
-//                 subtitle:
-//                     'Discover delicious homemade food from local cooks.',
+//                 subtitle: 'Discover delicious homemade food from local cooks.',
 //                 selected: _selectedRole == Role.customer,
 //                 onTap: () {
 //                   setState(() {
@@ -258,7 +90,6 @@
 //               // ==========================================
 //               // SELLER
 //               // ==========================================
-
 //               _RoleCard(
 //                 role: Role.seller,
 //                 emoji: '👩‍🍳',
@@ -278,13 +109,11 @@
 //               // ==========================================
 //               // ADMIN
 //               // ==========================================
-
 //               _RoleCard(
 //                 role: Role.admin,
 //                 emoji: '🛡️',
 //                 title: 'I am an administrator',
-//                 subtitle:
-//                     'Manage sellers, customers, products and orders.',
+//                 subtitle: 'Manage sellers, customers, products and orders.',
 //                 selected: _selectedRole == Role.admin,
 //                 onTap: () {
 //                   setState(() {
@@ -298,7 +127,6 @@
 //               // ==========================================
 //               // CONTINUE
 //               // ==========================================
-
 //               PrimaryButton(
 //                 text: 'Continue',
 //                 disabled: _selectedRole == null,
@@ -308,9 +136,8 @@
 //                         Navigator.push(
 //                           context,
 //                           MaterialPageRoute(
-//                             builder: (context) => RegisterScreen(
-//                               role: _selectedRole!,
-//                             ),
+//                             builder: (context) =>
+//                                 RegisterScreen(role: _selectedRole!),
 //                           ),
 //                         );
 //                       },
@@ -321,7 +148,6 @@
 //               // ==========================================
 //               // EXISTING ACCOUNT
 //               // ==========================================
-
 //               Center(
 //                 child: GestureDetector(
 //                   onTap: () {
@@ -329,14 +155,9 @@
 //                   },
 //                   child: RichText(
 //                     text: const TextSpan(
-//                       style: TextStyle(
-//                         color: AppColors.text2,
-//                         fontSize: 14,
-//                       ),
+//                       style: TextStyle(color: AppColors.text2, fontSize: 14),
 //                       children: [
-//                         TextSpan(
-//                           text: 'Already have an account? ',
-//                         ),
+//                         TextSpan(text: 'Already have an account? '),
 //                         TextSpan(
 //                           text: 'Sign in',
 //                           style: TextStyle(
@@ -389,9 +210,7 @@
 //           color: selected ? AppColors.cream : Colors.white,
 //           borderRadius: BorderRadius.circular(18),
 //           border: Border.all(
-//             color: selected
-//                 ? AppColors.primary
-//                 : AppColors.sand,
+//             color: selected ? AppColors.primary : AppColors.sand,
 //             width: selected ? 2 : 1,
 //           ),
 //         ),
@@ -400,7 +219,6 @@
 //             // ==========================================
 //             // ICON
 //             // ==========================================
-
 //             Container(
 //               width: 58,
 //               height: 58,
@@ -411,12 +229,7 @@
 //                 borderRadius: BorderRadius.circular(16),
 //               ),
 //               alignment: Alignment.center,
-//               child: Text(
-//                 emoji,
-//                 style: const TextStyle(
-//                   fontSize: 30,
-//                 ),
-//               ),
+//               child: Text(emoji, style: const TextStyle(fontSize: 30)),
 //             ),
 
 //             const SizedBox(width: 14),
@@ -424,7 +237,6 @@
 //             // ==========================================
 //             // TEXT
 //             // ==========================================
-
 //             Expanded(
 //               child: Column(
 //                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,16 +267,13 @@
 //             // ==========================================
 //             // RADIO BUTTON
 //             // ==========================================
-
 //             Container(
 //               width: 24,
 //               height: 24,
 //               decoration: BoxDecoration(
 //                 shape: BoxShape.circle,
 //                 border: Border.all(
-//                   color: selected
-//                       ? AppColors.primary
-//                       : AppColors.muted,
+//                   color: selected ? AppColors.primary : AppColors.muted,
 //                   width: 2,
 //                 ),
 //               ),
@@ -487,10 +296,6 @@
 //     );
 //   }
 // }
-
-
-
-
 import 'package:flutter/material.dart';
 
 import '../core/app_colors.dart';
@@ -536,7 +341,6 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               // ==========================================
               // TITLE
               // ==========================================
-
               const Text(
                 'How will you use\nGhar Ka Khana?',
                 style: TextStyle(
@@ -564,13 +368,11 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               // ==========================================
               // CUSTOMER
               // ==========================================
-
               _RoleCard(
                 role: Role.customer,
                 emoji: '🍽️',
                 title: 'I want to order food',
-                subtitle:
-                    'Discover delicious homemade food from local cooks.',
+                subtitle: 'Discover delicious homemade food from local cooks.',
                 selected: _selectedRole == Role.customer,
                 onTap: () {
                   setState(() {
@@ -584,7 +386,6 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               // ==========================================
               // SELLER
               // ==========================================
-
               _RoleCard(
                 role: Role.seller,
                 emoji: '👩‍🍳',
@@ -599,32 +400,11 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 },
               ),
 
-              const SizedBox(height: 14),
-
-              // ==========================================
-              // ADMIN
-              // ==========================================
-
-              _RoleCard(
-                role: Role.admin,
-                emoji: '🛡️',
-                title: 'I am an administrator',
-                subtitle:
-                    'Manage sellers, customers, products and orders.',
-                selected: _selectedRole == Role.admin,
-                onTap: () {
-                  setState(() {
-                    _selectedRole = Role.admin;
-                  });
-                },
-              ),
-
               const SizedBox(height: 32),
 
               // ==========================================
               // CONTINUE
               // ==========================================
-
               PrimaryButton(
                 text: 'Continue',
                 disabled: _selectedRole == null,
@@ -634,9 +414,8 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RegisterScreen(
-                              role: _selectedRole!,
-                            ),
+                            builder: (context) =>
+                                RegisterScreen(role: _selectedRole!),
                           ),
                         );
                       },
@@ -647,7 +426,6 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               // ==========================================
               // EXISTING ACCOUNT
               // ==========================================
-
               Center(
                 child: GestureDetector(
                   onTap: () {
@@ -655,14 +433,9 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                   },
                   child: RichText(
                     text: const TextSpan(
-                      style: TextStyle(
-                        color: AppColors.text2,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: AppColors.text2, fontSize: 14),
                       children: [
-                        TextSpan(
-                          text: 'Already have an account? ',
-                        ),
+                        TextSpan(text: 'Already have an account? '),
                         TextSpan(
                           text: 'Sign in',
                           style: TextStyle(
@@ -715,9 +488,7 @@ class _RoleCard extends StatelessWidget {
           color: selected ? AppColors.cream : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : AppColors.sand,
+            color: selected ? AppColors.primary : AppColors.sand,
             width: selected ? 2 : 1,
           ),
         ),
@@ -726,7 +497,6 @@ class _RoleCard extends StatelessWidget {
             // ==========================================
             // ICON
             // ==========================================
-
             Container(
               width: 58,
               height: 58,
@@ -737,12 +507,7 @@ class _RoleCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.center,
-              child: Text(
-                emoji,
-                style: const TextStyle(
-                  fontSize: 30,
-                ),
-              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 30)),
             ),
 
             const SizedBox(width: 14),
@@ -750,7 +515,6 @@ class _RoleCard extends StatelessWidget {
             // ==========================================
             // TEXT
             // ==========================================
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -781,16 +545,13 @@ class _RoleCard extends StatelessWidget {
             // ==========================================
             // RADIO BUTTON
             // ==========================================
-
             Container(
               width: 24,
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected
-                      ? AppColors.primary
-                      : AppColors.muted,
+                  color: selected ? AppColors.primary : AppColors.muted,
                   width: 2,
                 ),
               ),

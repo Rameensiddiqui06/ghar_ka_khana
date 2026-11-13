@@ -37,16 +37,10 @@ class AppField extends StatelessWidget {
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,
-          style: const TextStyle(
-            color: AppColors.text,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: AppColors.text, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: AppColors.muted,
-              fontSize: 14,
-            ),
+            hintStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(
@@ -55,21 +49,15 @@ class AppField extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.sand,
-              ),
+              borderSide: const BorderSide(color: AppColors.sand),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.sand,
-              ),
+              borderSide: const BorderSide(color: AppColors.sand),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-              ),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
           ),
         ),

@@ -12,6 +12,7 @@ import 'cust_edit_profile.dart';
 import '../terms_screen.dart';
 import 'privacy_screen.dart';
 import 'help_screen.dart';
+import '../../services/cart_controller.dart';
 
 const _textDark = Color(0xFF2A1F1A);
 const _textSoft = Color(0xFF6B5A50);
@@ -50,6 +51,7 @@ class CustProfileScreen extends StatelessWidget {
     );
 
     if (ok != true) return;
+    CartController.instance.clear();
     await AuthService().signOut();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(

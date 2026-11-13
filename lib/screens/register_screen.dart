@@ -59,6 +59,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _onCreateAccount() async {
+    // Admin accounts can never be created from the app.
+    if (widget.role == Role.admin) {
+      _showError('Please choose Customer or Seller to register.');
+      return;
+    }
+
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
@@ -111,7 +117,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        // show: "This email is already registered. Please sign in."
+        _showError('This email is already registered. Please sign in.');
+      } else {
+        _showError(e.message ?? 'Registration failed. Please try again.');
       }
     } catch (e) {
       _showError('Something went wrong. Please try again.');

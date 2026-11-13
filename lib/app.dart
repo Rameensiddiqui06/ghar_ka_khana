@@ -15,9 +15,7 @@ class GharKaKhanaApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
 
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
 
         fontFamily: 'Poppins',
 

@@ -10,7 +10,11 @@ class StatusPill extends StatelessWidget {
     'accepted': [Color(0xFFEDF7F1), AppColors.success, 'Accepted'],
     'preparing': [Color(0xFFFFF3EF), AppColors.primary, 'Preparing'],
     'ready': [Color(0xFFEDF7F1), AppColors.success, 'Ready'],
-    'out-for-delivery': [Color(0xFFEDF7F1), AppColors.success, 'Out for Delivery'],
+    'out-for-delivery': [
+      Color(0xFFEDF7F1),
+      AppColors.success,
+      'Out for Delivery',
+    ],
     'delivered': [Color(0xFFEDF7F1), AppColors.success, 'Delivered'],
     'cancelled': [Color(0xFFFDECEA), AppColors.error, 'Cancelled'],
   };

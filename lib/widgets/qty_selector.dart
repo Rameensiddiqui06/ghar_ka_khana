@@ -6,7 +6,12 @@ class QtySelector extends StatelessWidget {
   final VoidCallback onDec;
   final VoidCallback onInc;
 
-  const QtySelector({super.key, required this.qty, required this.onDec, required this.onInc});
+  const QtySelector({
+    super.key,
+    required this.qty,
+    required this.onDec,
+    required this.onInc,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,14 @@ class QtySelector extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _circleBtn('−', AppColors.sand, AppColors.text, onDec),
-          SizedBox(width: 20, child: Text('$qty', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600))),
+          SizedBox(
+            width: 20,
+            child: Text(
+              '$qty',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
           _circleBtn('+', AppColors.primary, Colors.white, onInc),
         ],
       ),
@@ -35,7 +47,14 @@ class QtySelector extends StatelessWidget {
         height: 28,
         decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
         alignment: Alignment.center,
-        child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.bold, fontSize: 16)),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: fg,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
       ),
     );
   }

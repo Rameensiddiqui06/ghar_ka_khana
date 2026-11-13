@@ -1,3 +1,5 @@
+
+
 class OrderItem {
   final String name;
   final int qty;
@@ -25,10 +27,19 @@ class FoodOrder {
   final int subtotal;
   final int delivery;
   final int total;
-  final String status; // pending, accepted, preparing, ready, out-for-delivery, delivered, cancelled
+  final String
+  status; // pending, accepted, preparing, ready, out-for-delivery, delivered, cancelled
   final String address;
-  final String payment;
+  final String payment; // display label, e.g. "Cash on Delivery"
   final DateTime createdAt;
+
+  // New checkout fields (all have defaults so old documents still load).
+  final String phone;
+  final String notes;
+  final String paymentMethod; // cod, easypaisa, jazzcash
+  final String paymentStatus; // unpaid, awaiting-verification, paid
+  final String transactionId;
+  final String checkoutId; // same for all orders created in one checkout
 
   FoodOrder({
     required this.id,
@@ -43,7 +54,24 @@ class FoodOrder {
     required this.address,
     required this.payment,
     required this.createdAt,
+    this.phone = '',
+    this.notes = '',
+    this.paymentMethod = 'cod',
+    this.paymentStatus = 'unpaid',
+    this.transactionId = '',
+    this.checkoutId = '',
   });
+
+  String get paymentStatusLabel {
+    switch (paymentStatus) {
+      case 'paid':
+        return 'Paid';
+      case 'awaiting-verification':
+        return 'Payment awaiting verification';
+      default:
+        return paymentMethod == 'cod' ? 'Pay on delivery' : 'Unpaid';
+    }
+  }
 
   factory FoodOrder.fromMap(String id, Map<String, dynamic> map) {
     return FoodOrder(
@@ -63,6 +91,12 @@ class FoodOrder {
       createdAt: map['createdAt'] != null
           ? (map['createdAt']).toDate()
           : DateTime.now(),
+      phone: map['phone'] ?? '',
+      notes: map['notes'] ?? '',
+      paymentMethod: map['paymentMethod'] ?? 'cod',
+      paymentStatus: map['paymentStatus'] ?? 'unpaid',
+      transactionId: map['transactionId'] ?? '',
+      checkoutId: map['checkoutId'] ?? '',
     );
   }
 
@@ -79,6 +113,12 @@ class FoodOrder {
       'address': address,
       'payment': payment,
       'createdAt': createdAt,
+      'phone': phone,
+      'notes': notes,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentStatus,
+      'transactionId': transactionId,
+      'checkoutId': checkoutId,
     };
   }
 }
