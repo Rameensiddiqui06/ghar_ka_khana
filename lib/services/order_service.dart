@@ -129,6 +129,7 @@ class OrderService {
     'ready': 'Your order is ready 🍲',
     'delivered': 'Order delivered',
     'cancelled': 'Order cancelled',
+    'out-for-delivery': 'Out for delivery',
   };
 
   void _push(String orderId, String title, String body) {

@@ -13,6 +13,7 @@ import '../terms_screen.dart';
 import 'privacy_screen.dart';
 import 'help_screen.dart';
 import '../../services/cart_controller.dart';
+import 'change_password_screen.dart';
 
 const _textDark = Color(0xFF2A1F1A);
 const _textSoft = Color(0xFF6B5A50);
@@ -60,7 +61,6 @@ class CustProfileScreen extends StatelessWidget {
       );
     }
   }
-
   Future<void> _confirmDeleteAccount(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -204,8 +204,7 @@ class CustProfileScreen extends StatelessWidget {
         final items = <_MenuItem>[
           _MenuItem('📦', 'My Orders', 'Track and view orders', 'orders'),
           _MenuItem('🤍', 'Favorites', 'Saved foods and cooks', 'saved'),
-          _MenuItem('🔔', 'Notifications', 'Order updates and offers',
-              'notifications'),
+          _MenuItem('🔑', 'Change Password', 'Update your password', 'password'),
           _MenuItem('❓', 'Help & Support', 'FAQs and contact', 'help'),
           _MenuItem('📄', 'Terms & Conditions', 'What you agreed to at sign-up',
               'terms'),
@@ -249,6 +248,11 @@ class CustProfileScreen extends StatelessWidget {
                                     break;
                                   case 'help':
                                     openHelp();
+                                    break;
+                                  case 'password':
+                                    Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (_) => const ChangePasswordScreen(),
+                                    ));
                                     break;
                                   default:
                                     onNav(items[i].target);
