@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="ghar_ka_khana"
+        android:label="Ghar Ka khana"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
